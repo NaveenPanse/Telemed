@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Add Company</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a class="navbar-brand" href="/medical/inventory">Back</a>
+</nav>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Add Company</h2>
+
+    <div th:if="${error}" class="alert alert-danger text-center">
+        <p th:text="${error}" class="fs-3"></p>
+    </div>
+
+    <form action="/company/add" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="name" class="form-label">Company Name</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <input type="text" id="address" name="address" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="number" class="form-label">Contact Number</label>
+            <input type="text" id="number" name="number" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="gstNo" class="form-label">GST Number</label>
+            <input type="text" id="gstNo" name="gstNo" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="drug_lisc_no" class="form-label">Drug License Number</label>
+            <input type="text" id="drug_lisc_no" name="drug_lisc_no" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="validity_drug" class="form-label">Drug License Validity</label>
+            <input type="date" id="validity_drug" name="validity_drug" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="food_lisc_no" class="form-label">Food License Number</label>
+            <input type="text" id="food_lisc_no" name="food_lisc_no" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="validity_food" class="form-label">Food License Validity</label>
+            <input type="date" id="validity_food" name="validity_food" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Company</button>
+        <a href="/medical/inventory" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+
+<!-- Bootstrap JS + Validation Script -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Bootstrap form validation
+    (() => {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+</body>
+</html>

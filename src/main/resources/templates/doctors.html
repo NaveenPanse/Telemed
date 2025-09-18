@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Consultation - TeleMed</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+            --warning-gradient: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
+            --info-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Enhanced Left Section - Patient Info */
+        .left-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 30px;
+            min-height: 100vh;
+            border-radius: 0 25px 25px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .patient-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .patient-header h4 {
+            margin: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .patient-avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .patient-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .info-icon {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            margin-right: 10px;
+            min-width: 80px;
+        }
+
+        .info-value {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .priority-badge {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Enhanced Right Section - Doctors */
+        .doctors-section {
+            padding: 30px;
+        }
+
+        .section-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--success-gradient);
+        }
+
+        .section-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-subtitle {
+            color: #7f8c8d;
+            margin: 10px 0 0 0;
+        }
+
+        .filter-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 45px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+
+        /* Enhanced Doctor Cards */
+        .doctor-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            background: white;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .doctor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--success-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .doctor-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .doctor-avatar {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-gradient);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .doctor-status {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-available {
+            background: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        .status-unavailable {
+            background: #e74c3c;
+        }
+
+        .doctor-name {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .doctor-specialization {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .doctor-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .info-chip {
+            background: #f8f9fa;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .fees-highlight {
+            background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            margin-right: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-call {
+            background: var(--success-gradient);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-call:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-call:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-chat {
+            background: var(--info-gradient);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-chat:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-chat:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .no-doctors {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .no-doctors i {
+            font-size: 4rem;
+            color: #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        /* Stats Overview */
+        .stats-overview {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(39, 174, 96, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .left-section {
+                min-height: auto;
+                border-radius: 0 0 25px 25px;
+                margin-bottom: 20px;
+                position: relative;
+                padding: 20px;
+            }
+
+            .doctors-section {
+                padding: 20px;
+            }
+
+            .section-header {
+                padding: 20px;
+            }
+
+            .doctor-card {
+                margin-bottom: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .filter-controls {
+                padding: 15px;
+            }
+        }
+
+        /* Specialty badges */
+        .specialty-badge {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Consultation history */
+        .consultation-history {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row g-0">
+
+        <!-- Enhanced Left Section: Patient Info -->
+        <div class="col-lg-3 left-section">
+            <div class="patient-header">
+                <h4>
+                    <i class="fas fa-user-injured"></i>
+                    Patient Information
+                </h4>
+            </div>
+
+            <div class="text-center">
+                <div class="patient-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h5 th:text="${patient.name}">John Doe</h5>
+                <div class="priority-badge">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Priority Case
+                </div>
+            </div>
+
+            <div class="patient-info">
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                    <div class="info-label">Problem:</div>
+                    <div class="info-value" th:text="${patient.problem}">Headache</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-birthday-cake"></i>
+                    </div>
+                    <div class="info-label">Age:</div>
+                    <div class="info-value"><span th:text="${patient.age}">35</span> years</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <div class="info-label">Weight:</div>
+                    <div class="info-value"><span th:text="${patient.weight}">60</span> kg</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-venus-mars"></i>
+                    </div>
+                    <div class="info-label">Gender:</div>
+                    <div class="info-value" th:text="${patient.gender}">Male</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="info-label">BP:</div>
+                    <div class="info-value"><span th:text="${patient.bp}">120/80</span> mmHg</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="info-label">Sugar:</div>
+                    <div class="info-value" th:text="${patient.sugar}">80mg/dL</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-lungs"></i>
+                    </div>
+                    <div class="info-label">SpO2:</div>
+                    <div class="info-value"><span th:text="${patient.spo2}">98</span>%</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="info-label">Phone:</div>
+                    <div class="info-value" th:text="${patient.number}">+91XXXXXXXXXX</div>
+                </div>
+            </div>
+
+            <div class="consultation-history">
+                <h6><i class="fas fa-history me-2"></i>Recent History</h6>
+                <div class="history-item">
+                    <i class="fas fa-check-circle text-success"></i>
+                    <small>Last consultation: 2 weeks ago</small>
+                </div>
+                <div class="history-item">
+                    <i class="fas fa-prescription"></i>
+                    <small>Prescription updated: 1 week ago</small>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a th:href="@{/medical/dashboard}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Enhanced Right Section: Doctors List -->
+        <div class="col-lg-9 doctors-section">
+            <!-- Section Header -->
+            <div class="section-header fade-in-up">
+                <h4>
+                    <i class="fas fa-user-md text-success"></i>
+                    Available Healthcare Professionals
+                </h4>
+                <p class="section-subtitle">Connect with qualified doctors for immediate consultation</p>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-overview fade-in-up">
+                <div class="row">
+                    <div class="col-3 stat-item">
+                        <div class="stat-number" id="totalDoctors">0</div>
+                        <div class="stat-label">Total Doctors</div>
+                    </div>
+                    <div class="col-3 stat-item">
+                        <div class="stat-number" id="availableDoctors">0</div>
+                        <div class="stat-label">Available Now</div>
+                    </div>
+                    <div class="col-3 stat-item">
+                        <div class="stat-number">4.8</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                    <div class="col-3 stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls fade-in-up">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Search doctors by name or specialization..." id="doctorSearch">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="specializationFilter">
+                            <option value="">All Specializations</option>
+                            
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="availabilityFilter">
+                            <option value="">All Doctors</option>
+                            
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Doctors Message -->
+            <div th:if="${#lists.isEmpty(doctors)}" class="no-doctors fade-in-up">
+                <i class="fas fa-user-md-slash"></i>
+                <h5>No Doctors Available</h5>
+                <p class="text-muted">Currently, no healthcare professionals are available. Please try again later or contact support.</p>
+                <button class="btn btn-primary">
+                    <i class="fas fa-refresh"></i> Refresh List
+                </button>
+            </div>
+
+            <!-- Doctor Cards -->
+            <div class="row doctor-grid">
+                <div class="col-xl-6" th:each="doctor, iterStat : ${doctors}">
+                    <div class="doctor-card fade-in-up" th:style="'animation-delay: ' + ${iterStat.index * 0.1} + 's'">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start">
+                                <div class="doctor-avatar">
+                                    <i class="fas fa-user-md"></i>
+                                    <div class="doctor-status" 
+                                         th:class="${doctor.lastActiveAt != null and doctor.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusMinutes(1))} ? 'status-available' : 'status-unavailable'">
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="doctor-name" th:text="${doctor.name}">Dr. Jane Smith</h5>
+                                    <div class="doctor-specialization" th:text="${doctor.specialization}">Cardiology</div>
+                                    
+                                    <div class="doctor-info">
+                                        <div class="info-chip fees-highlight">
+                                            <i class="fas fa-rupee-sign"></i>
+                                            <span th:text="${doctor.fees}">500</span>
+                                        </div>
+                                        <div class="info-chip">
+                                            <span class="rating-stars">★★★★★</span>
+                                            4.8 (156 reviews)
+                                        </div>
+                                        <div class="info-chip">
+                                            <i class="fas fa-clock"></i>
+                                            15+ years exp
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center mt-2 mb-3">
+                                        <span th:if="${doctor.lastActiveAt != null and doctor.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusMinutes(1))}" 
+                                              class="badge bg-success me-2">
+                                            <i class="fas fa-circle me-1"></i>Available Now
+                                        </span>
+                                        <span th:if="${doctor.lastActiveAt == null or doctor.lastActiveAt.isBefore(T(java.time.LocalDateTime).now().minusMinutes(1))}" 
+                                              class="badge bg-danger me-2">
+                                            <i class="fas fa-circle me-1"></i>Currently Unavailable
+                                        </span>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>Next available: 2:30 PM
+                                        </small>
+                                    </div>
+
+                                    <div class="action-buttons">
+                                        <a th:href="@{'/medical-call?receiverUid=' + ${doctor.id} + '&patientId=' + ${patient.id}}"
+                                           th:classappend="${doctor.lastActiveAt == null or doctor.lastActiveAt.isBefore(T(java.time.LocalDateTime).now().minusMinutes(1))} ? ' disabled' : ''"
+                                           class="btn btn-call"
+                                           th:disabled="${doctor.lastActiveAt == null or doctor.lastActiveAt.isBefore(T(java.time.LocalDateTime).now().minusMinutes(1))}">
+                                            <i class="fas fa-phone"></i>
+                                            Start Video Call
+                                        </a>
+                                        <a href="#"
+                                           th:classappend="${doctor.lastActiveAt == null or doctor.lastActiveAt.isBefore(T(java.time.LocalDateTime).now().minusMinutes(1))} ? ' disabled' : ''"
+                                           class="btn btn-chat"
+                                           th:disabled="${doctor.lastActiveAt == null or doctor.lastActiveAt.isBefore(T(java.time.LocalDateTime).now().minusMinutes(1))}">
+                                            <i class="fas fa-comments"></i>
+                                            Start Chat
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End Right Section -->
+
+    </div> <!-- End Row -->
+</div> <!-- End Container -->
+
+<!-- Replace your <script> block with this -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Count and display initial statistics
+document.addEventListener('DOMContentLoaded', function() {
+    updateDoctorStats();
+});
+
+// Listen to filters
+document.getElementById('doctorSearch').addEventListener('input', filterDoctors);
+document.getElementById('specializationFilter').addEventListener('change', filterDoctors);
+document.getElementById('availabilityFilter').addEventListener('change', filterDoctors);
+
+function filterDoctors() {
+    const search = document.getElementById('doctorSearch').value;
+    const specialization = document.getElementById('specializationFilter').value;
+    const availability = document.getElementById('availabilityFilter').value;
+
+    // AJAX call to backend
+    fetch(`/doctors/filter?search=${search}&specialization=${specialization}&availability=${availability}`)
+        .then(res => res.text())
+        .then(html => {
+            document.querySelector('.doctor-grid').innerHTML = html;
+            updateDoctorStats();
+        });
+}
+
+function updateDoctorStats() {
+    const doctorCards = document.querySelectorAll('.doctor-card');
+    const availableDoctors = document.querySelectorAll('.status-available').length;
+
+    document.getElementById('totalDoctors').textContent = doctorCards.length;
+    document.getElementById('availableDoctors').textContent = availableDoctors;
+
+    // Add animation delay
+    doctorCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+}
+</script>

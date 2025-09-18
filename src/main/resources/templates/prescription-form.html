@@ -1,0 +1,30 @@
+<hr>
+<h3>📝 Prescription Form</h3>
+<form th:action="@{/prescription/save}" method="post" th:object="${prescription}">
+  <input type="hidden" th:field="*{patient.id}" />
+
+  <label>Diagnosis</label>
+  <input type="text" th:field="*{diagnosis}" required />
+
+  
+
+  <div th:each="medicine, iterStat : *{medicines}">
+    <h4>Medication [[${iterStat.index + 1}]]</h4>
+
+    <label>Name</label>
+    <input type="text" th:field="*{medicines[__${iterStat.index}__].name}" required />
+
+    <label>Dosage</label>
+    <input type="text" th:field="*{medicines[__${iterStat.index}__].dosage}" required />
+
+    <label>Frequency</label>
+    <input type="text" th:field="*{medicines[__${iterStat.index}__].frequency}" required />
+
+    <label>Duration</label>
+    <input type="text" th:field="*{medicines[__${iterStat.index}__].duration}" required />
+  </div>
+  <label>Notes</label>
+  <textarea th:field="*{notes}" rows="3"></textarea>
+
+  <button type="submit" style="margin-top: 10px;">💾 Save Prescription</button>
+</form>

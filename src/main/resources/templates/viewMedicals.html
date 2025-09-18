@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>All Medicals</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">List of All Medicals</h2>
+
+    <div th:if="${deleted}" class="alert alert-danger text-center">
+        <p th:text="${deleted}" class="fs-3"></p>
+    </div>
+    <div th:if="${error}" class="alert alert-danger text-center">
+        <p th:text="${error}" class="fs-3"></p>
+    </div>
+
+    <!-- 🔍 Search Form -->
+    <form class="row g-3 mb-4" action="/medical/getByEmail" method="get">
+        <div class="col-md-10">
+            <input type="email" name="email" class="form-control" placeholder="Search by Email" required>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </form>
+
+    <!-- 📋 Medicals Table or No Data Message -->
+    <div th:if="${#lists.isEmpty(medicals)}" class="alert alert-info text-center fs-5">
+        No medicals available.
+    </div>
+
+    <div class="table-responsive" th:if="${!#lists.isEmpty(medicals)}">
+        <table class="table table-bordered table-hover align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>S.No</th>
+                    <th>Medical Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="medical, iterStat : ${medicals}">
+                    <td th:text="${iterStat.count}">1</td>
+                    <td th:text="${medical.name}">Apollo Pharmacy</td>
+                    <td th:text="${medical.email}">apollo@example.com</td>
+                    <td th:text="${medical.number}">9876543210</td>
+                    <td th:text="${medical.address}">Hyderabad</td>
+                    <td>
+                        <!-- Update Button -->
+                        <a th:href="@{/medical/update(id=${medical.id})}" class="btn btn-sm btn-warning me-2">Update</a>
+
+                        <!-- Delete Form -->
+                        <form th:action="@{/medical/delete(id=${medical.id})}" method="post" style="display:inline;">
+                            <input type="hidden" name="_method" value="delete" />
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Are you sure you want to delete this medical?');">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ⬅️ Back Button -->
+    <div class="text-center mt-4">
+        <a href="/admin/dashboard" class="btn btn-secondary">Back</a> 
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

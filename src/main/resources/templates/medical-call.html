@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Medical - Start Video Call</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/@cometchat-pro/chat@3.0.0/CometChat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #2c3e50;
+    }
+
+    #callScreen {
+      width: 100%;
+      max-width: 700px;
+      height: 400px;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    button {
+      background-color: #3498db;
+      color: #fff;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <h2>Welcome, <span th:text="${name}">Medical</span></h2>
+
+  <button onclick="startCall()">📞 Start Call</button>
+
+  <div id="callScreen"></div>
+
+  <script>
+    const appID = "276877073d884bab";
+    const region = "in";
+    const authKey = "f194850f1e253f34ba8f93a98a6c8ab155a394fe";
+    const currentUID = "[[${cometchatUid}]]";
+    const receiverID = "[[${receiverUid}]]";
+    
+console.log(receiverID);
+    // Initialize and login to CometChat
+    CometChat.init(appID, new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(region).build())
+      .then(() => {
+        CometChat.login(currentUID, authKey)
+          .then(() => {
+            console.log("Logged in as medical:", currentUID);
+          })
+          .catch(error => {
+            console.error("Login failed:", error);
+          });
+      });
+
+    function startCall() {
+      if (!receiverID || receiverID === currentUID) {
+        alert("Invalid call attempt.");
+        return;
+      }
+      
+   // Pass patientId in call metadata
+      const metadata = {
+        "patientId": "[[${patientId}]]"  // patientId from controller
+      };
+
+      const call = new CometChat.Call(receiverID, CometChat.CALL_TYPE.VIDEO, CometChat.RECEIVER_TYPE.USER);
+      call.setMetadata(metadata);
+      
+      
+      CometChat.initiateCall(call).then(outGoingCall => {
+        document.getElementById("callScreen").style.display = "block";
+        CometChat.startCall(
+          outGoingCall.getSessionId(),
+          document.getElementById("callScreen"),
+          new CometChat.CallSettingsBuilder().setIsAudioOnlyCall(false).build()
+        );
+      }).catch(error => {
+        console.error("Call initiation failed:", error);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Doctor - Video Call & Prescription</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/@cometchat-pro/chat@3.0.0/CometChat.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      display: flex;
+    }
+
+    #patientInfo {
+      width: 35%;
+      padding: 20px;
+      background-color: #ffffff;
+      border-right: 1px solid #ccc;
+      display: none;
+      overflow-y: auto;
+    }
+
+    #rightPanel {
+      flex-grow: 1;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #callControls {
+      display: none;
+      margin-top: 20px;
+      background-color: #ecf0f1;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    #callScreen {
+      width: 100%;
+      max-width: 700px;
+      height: 400px;
+      border: 2px solid #2ecc71;
+      border-radius: 8px;
+      margin: 20px auto 0;
+      display: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .accept {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .reject {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    h2, h3 {
+      color: #34495e;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 6px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+
+    hr {
+      margin: 15px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Left panel -->
+  <div id="patientInfo">
+  <h3>🧑‍⚕️ Patient Details</h3>
+  <p><strong>Name:</strong> <span id="pname">-</span></p>
+  <p><strong>Age:</strong> <span id="page">-</span></p>
+  <p><strong>Problem:</strong> <span id="pproblem">-</span></p>
+  <p><strong>BP:</strong> <span id="pbp">-</span></p>
+  <p><strong>SpO2:</strong> <span id="pspo2">-</span></p>
+  <p><strong>Sugar:</strong> <span id="psugar">-</span></p>
+  <p><strong>Address:</strong> <span id="paddress">-</span></p>
+
+  <hr/>
+  <h3>📝 Prescription Form</h3>
+  <form id="prescriptionForm" method="post" action="/prescription/save" th:object="${prescription}">
+    <input type="hidden" name="patient.id" id="prescriptionPatientId" />
+
+    <label>Diagnosis:</label>
+    <input type="text" name="diagnosis" required /><br/>
+
+    <label>Notes:</label>
+    <textarea name="instructions"></textarea><br/>
+
+    <div id="medicineList">
+      <!-- First medicine -->
+      <div class="medicine-group" data-index="0">
+        <label>Medicine 1:</label><br/>
+        <input type="text" name="medicines[0].name" placeholder="Name" required /><br/>
+        <input type="text" name="medicines[0].dose" placeholder="Dose" /><br/>
+        <input type="text" name="medicines[0].duration" placeholder="Duration" /><br/>
+        <hr/>
+      </div>
+    </div>
+
+    <button type="button" onclick="addMedicine()">➕ Add Medicine</button><br/><br/>
+    <button type="submit">💾 Save Prescription</button>
+  </form>
+</div>
+
+  <!-- Right panel -->
+  <div id="rightPanel">
+    <h2>Welcome, <span th:text="${name}">Doctor</span></h2>
+    <input type="hidden" id="patientIdHidden" name="patientId">
+
+    <div id="callControls">
+      <h3>📲 Incoming Call from <span id="callerName">...</span></h3>
+      <button class="accept" onclick="acceptCall()">✅ Accept</button>
+      <button class="reject" onclick="rejectCall()">❌ Reject</button>
+    </div>
+
+    <div id="callScreen"></div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    setInterval(() => {
+      fetch('/doctor/heartbeat', { method: 'POST' });
+    }, 30000);
+
+    const appID = "276877073d884bab";
+    const region = "in";
+    const authKey = "f194850f1e253f34ba8f93a98a6c8ab155a394fe";
+    const currentUID = "[[${cometchatUid}]]";
+
+    let incomingCall = null;
+
+    CometChat.init(appID, new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(region).build()).then(() => {
+      CometChat.login(currentUID, authKey).then(() => {
+        console.log("Logged in as doctor:", currentUID);
+        addCallListener();
+      }).catch(console.error);
+    });
+
+    function addCallListener() {
+      CometChat.addCallListener("CALL_LISTENER_ID", new CometChat.CallListener({
+        onIncomingCallReceived: call => {
+          incomingCall = call;
+          document.getElementById("callerName").innerText =
+            (call.sender && (call.sender.name || call.sender.uid)) || "Unknown";
+          console.log("Incoming call received:", call);
+          const metadata = call.getMetadata();
+          const patientId = metadata?.patientId;
+          if (patientId) {
+            console.log("Received Patient ID:", patientId);
+            document.getElementById("patientIdHidden").value = patientId;
+           
+          } else {
+            console.warn("Patient ID not found in metadata.");
+          }
+
+          document.getElementById("callControls").style.display = "block";
+        },
+        onCallEnded: () => {
+          document.getElementById("callScreen").style.display = "none";
+          document.getElementById("callControls").style.display = "none";
+          document.getElementById("patientInfo").style.display = "none";
+        }
+      }));
+    }
+
+    let medicineIndex = 1;
+    function addMedicine() {
+      const container = document.getElementById("medicineList");
+
+      const newDiv = document.createElement("div");
+      newDiv.classList.add("medicine-group");
+      newDiv.setAttribute("data-index", medicineIndex);
+
+      newDiv.innerHTML = `
+        <label>Medicine ${medicineIndex + 1}:</label><br/>
+        <input type="text" name="medicines[${medicineIndex}].name" placeholder="Name" required /><br/>
+        <input type="text" name="medicines[${medicineIndex}].dose" placeholder="Dose" /><br/>
+        <input type="text" name="medicines[${medicineIndex}].duration" placeholder="Duration" /><br/>
+        <hr/>
+      `;
+
+      container.appendChild(newDiv);
+      medicineIndex++;
+    }
+
+    function fetchPatientAndPrescription(patientId) {
+      // Fetch patient data
+      fetch(`/patient/get?id=${patientId}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("pname").innerText = data.name || '-';
+          document.getElementById("page").innerText = data.age || '-';
+          document.getElementById("pproblem").innerText = data.problem || '-';
+          document.getElementById("pbp").innerText = data.bp || '-';
+          document.getElementById("pspo2").innerText = data.spo2 || '-';
+          document.getElementById("psugar").innerText = data.sugar || '-';
+          document.getElementById("paddress").innerText = data.address || '-';
+
+          document.getElementById("prescriptionPatientId").value = data.id;
+        });
+    }
+
+    function acceptCall() {
+      if (incomingCall) {
+        CometChat.acceptCall(incomingCall.sessionId).then(call => {
+          document.getElementById("callControls").style.display = "none";
+          document.getElementById("callScreen").style.display = "block";
+          CometChat.startCall(
+            call.getSessionId(),
+            document.getElementById("callScreen"),
+            new CometChat.CallSettingsBuilder().setIsAudioOnlyCall(false).build()
+          );
+
+          // Get patientId and fetch both patient info & initialize prescription form
+          const patientId = document.getElementById("patientIdHidden").value;
+          document.getElementById("patientInfo").style.display = "block";
+          fetchPatientAndPrescription(patientId);
+
+        }).catch(console.error);
+      }
+    }
+
+    function rejectCall() {
+      if (incomingCall) {
+        CometChat.rejectCall(incomingCall.sessionId, CometChat.CALL_STATUS.REJECTED).then(() => {
+          document.getElementById("callControls").style.display = "none";
+          incomingCall = null;
+        }).catch(console.error);
+      }
+    }
+  </script>
+</body>
+</html>
